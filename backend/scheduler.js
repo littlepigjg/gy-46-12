@@ -1,6 +1,6 @@
 import cron from 'node-cron';
 import getDb from './db.js';
-import { takeScreenshot } from './screenshot.js';
+import { takeScreenshot, getUrlDevices } from './screenshot.js';
 
 function shouldRunNow(frequency, lastRun) {
   if (!lastRun) return true;
@@ -31,8 +31,8 @@ async function runAllDueTasks() {
     if (shouldRunNow(urlRecord.frequency, urlRecord.last_screenshot_at)) {
       console.log(`[调度器] 执行截图: ${urlRecord.url}`);
       try {
-        await takeScreenshot(urlRecord);
-        console.log(`[调度器] 截图完成: ${urlRecord.url}`);
+        const result = await takeScreenshot(urlRecord);
+        console.log(`[调度器] 截图完成: ${urlRecord.url} (成功: ${result.success}, 失败: ${result.failed})`);
       } catch (err) {
         console.error(`[调度器] 截图失败 [${urlRecord.url}]:`, err.message);
       }
@@ -59,4 +59,8 @@ export async function triggerScreenshotNow(urlId) {
     throw new Error('URL不存在');
   }
   return await takeScreenshot(urlRecord);
+}
+
+export async function getScreenshotDevices(urlId) {
+  return await getUrlDevices(urlId);
 }
